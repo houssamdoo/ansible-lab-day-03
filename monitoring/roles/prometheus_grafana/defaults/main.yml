@@ -1,0 +1,5 @@
+---
+prometheus_version: "3.4.0"
+prometheus_archive: "prometheus-{{ prometheus_version }}.linux-amd64.tar.gz"
+prometheus_src_dir: "/tmp/prometheus-{{ prometheus_version }}.linux-amd64"
+prometheus_user: prometheus

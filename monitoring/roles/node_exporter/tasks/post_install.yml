@@ -1,0 +1,34 @@
+---
+- name: Allow port 9100 through firewalld (RHEL only)
+  ansible.posix.firewalld:
+    port: 9100/tcp
+    permanent: true
+    state: enabled
+    immediate: yes
+  when: ansible_os_family == "RedHat"
+
+- name: Set SELinux to allow Node Exporter port (RHEL only)
+  ansible.posix.selinux:
+    ports: 9100
+    proto: tcp
+    setype: http_port_t
+    state: present
+  when: ansible_selinux.status == "enabled"
+
+#- name: Enable SELinux
+#  ansible.posix.selinux:
+#    policy: targeted
+#    state: enforcing
+#- name: Put SELinux in permissive mode
+#  ansible.posix.selinux:
+#    policy: targeted
+#    state: permissive
+#- name: Disable SELinux
+#  ansible.posix.selinux:
+#    state: disabled
+
+# Add port context if not already defined
+#sudo semanage port -a -t http_port_t -p tcp 9100
+
+# Verify the port is configured
+#sudo semanage port -l | grep http_port_t | grep 9100

@@ -1,0 +1,59 @@
+---
+- name: Install required packages
+  apt:
+    name: "{{ required_packages }}"
+    state: present
+    update_cache: yes
+
+- name: Create keyrings directory
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Download and add Grafana GPG key
+  shell: |
+    wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor | sudo tee /etc/apt/keyrings/grafana.gpg > /dev/null
+
+
+
+- name: Add Grafana APT repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/grafana.gpg] {{ grafana_repo_url }} stable main"
+    filename: grafana
+    state: present
+  notify: Update apt cache
+
+- name: Install Grafana
+  apt:
+    name: grafana
+    state: present
+  notify: Restart Grafana
+  
+#- name: Download Grafana GPG key
+#  ansible.builtin.get_url:
+#    url: "{{ grafana_gpg_key_url }}"
+#    dest: /etc/pki/rpm-gpg/grafana.key
+#
+#- name: Import Grafana GPG key
+#  ansible.builtin.rpm_key:
+#    state: present
+#    key: /etc/pki/rpm-gpg/grafana.key
+#
+#- name: Configure Grafana repository
+#  ansible.builtin.template:
+#    src: grafana.repo.j2
+#    dest: "{{ grafana_repo_path }}"
+#    mode: '0644'
+#
+#- name: Install Grafana
+#  ansible.builtin.dnf:
+#    name: grafana
+#    state: present
+#
+#- name: Enable and start Grafana service
+#  ansible.builtin.service:
+#    name: grafana-server
+#    enabled: yes
+#    state: started
+#

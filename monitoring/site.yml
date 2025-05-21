@@ -1,0 +1,22 @@
+# site.yml
+---
+- name: Install Prometheus and Grafana
+  hosts: server-monitoring
+  become: yes
+  roles:
+    - prometheus_grafana
+  tags:
+    - prometheus-and-grafana-install
+
+- name: Install Node Exporter on Linux targets
+  hosts: target-rhel
+  become: yes
+  roles:
+    - node_exporter
+  tags:
+    - install-node-exporter
+
+- name: Install Windows Exporter on Windows targets
+  hosts: windows
+  roles:
+    - windows_exporter

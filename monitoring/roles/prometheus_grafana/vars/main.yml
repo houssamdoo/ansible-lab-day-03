@@ -1,0 +1,13 @@
+---
+grafana_repo_path: "/etc/yum.repos.d/grafana.repo"
+grafana_gpg_key_url: "https://rpm.grafana.com/gpg.key"
+
+
+required_packages:
+  - apt-transport-https
+  - software-properties-common
+  - wget
+
+grafana_gpg_url: https://apt.grafana.com/gpg.key
+grafana_repo_url: https://apt.grafana.com
+

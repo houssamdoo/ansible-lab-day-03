@@ -1,0 +1,50 @@
+---
+- name: Ensure node_exporter group exists
+  group:
+    name: "{{ node_exporter_group }}"
+    state: present
+
+- name: Ensure node_exporter user exists
+  user:
+    name: "{{ node_exporter_user }}"
+    group: "{{ node_exporter_group }}"
+    shell: "/bin/false"
+    create_home: false
+    system: true
+
+- name: Download Node Exporter tarball
+  get_url:
+    url: "{{ node_exporter_download_url }}"
+    dest: "{{ node_exporter_tar_dir }}/{{ node_exporter_tar_file }}"
+    mode: '0644'
+
+- name: Extract Node Exporter
+  unarchive:
+    src: "{{ node_exporter_tar_dir }}/{{ node_exporter_tar_file }}"
+    dest: "{{ node_exporter_tar_dir }}"
+    remote_src: yes
+
+- name: Copy Node Exporter binary
+  copy:
+    src: "{{ node_exporter_tar_dir }}/{{ node_exporter_extracted_dir }}/node_exporter"
+    dest: "{{ node_exporter_bin_dir }}/node_exporter"
+    mode: '0755'
+    owner: "{{ node_exporter_user }}"
+    group: "{{ node_exporter_group }}"
+    remote_src: true
+  tags:
+    - copy-node-exporter
+
+- name: Deploy Node Exporter systemd unit file
+  template:
+    src: node-exporter.service.j2
+    dest: "{{ node_exporter_service_file }}"
+    mode: '0664'
+  notify:
+    - Reload systemd
+
+- name: Enable and start Node Exporter service
+  service:
+    name: node-exporter
+    enabled: yes
+    state: started

@@ -1,0 +1,6 @@
+---
+- name: Install Prometheus
+  import_tasks: install_prometheus.yml
+
+- name: Install Grafana
+  import_tasks: install_grafana.yml

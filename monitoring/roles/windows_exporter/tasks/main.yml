@@ -1,0 +1,33 @@
+---
+- name: Ensure C:\Temp exists
+  ansible.windows.win_file:
+    path: C:\Temp
+    state: directory
+
+- name: Download Windows Exporter installer
+  ansible.windows.win_get_url:
+    url: "{{ windows_exporter_installer_url }}"
+    dest: "{{ windows_exporter_installer_path }}"
+#
+- name: Install Windows Exporter
+  ansible.windows.win_package:
+    path: "{{ windows_exporter_installer_path }}"
+    product_id: ""
+    state: present
+    arguments: "/quiet"
+#
+- name: Ensure windows_exporter service is started and enabled
+  ansible.windows.win_service:
+    name: "{{ windows_exporter_service_name }}"
+    start_mode: auto
+    state: started
+#
+- name: Open Windows Firewall for port 9182
+  community.windows.win_firewall_rule:
+    name: "Allow Windows Exporter"
+    localport: 9182
+    protocol: tcp
+    action: allow
+    direction: in
+    state: present
+    enabled: yes

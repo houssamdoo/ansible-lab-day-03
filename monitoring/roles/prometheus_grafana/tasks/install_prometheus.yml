@@ -1,0 +1,86 @@
+---
+- name: Create prometheus user
+  user:
+    name: "{{ prometheus_user }}"
+    shell: /bin/false
+    create_home: no
+
+- name: Copy Prometheus Archive
+  copy:
+    src: "files/{{ prometheus_archive }}"
+    dest: "/tmp"
+
+- name: Extract Prometheus tarball
+  unarchive:
+    src: "/tmp/{{ prometheus_archive }}"
+    dest: "/tmp"
+    remote_src: yes
+
+- name: Create config directory
+  file:
+    path: /etc/prometheus
+    state: directory
+    owner: "{{ prometheus_user }}"
+    group: "{{ prometheus_user }}"
+    mode: '0755'
+
+- name: Copy configuration file
+  copy:
+    src: "{{ prometheus_src_dir }}/prometheus.yml"
+    dest: /etc/prometheus/prometheus.yml
+    owner: "{{ prometheus_user }}"
+    group: "{{ prometheus_user }}"
+    mode: '0644'
+    remote_src: yes
+
+- name: Copy Prometheus binaries
+  copy:
+    src: "{{ prometheus_src_dir }}/{{ item }}"
+    dest: "/usr/bin/{{ item }}"
+    mode: '0755'
+    remote_src: yes
+  loop:
+    - prometheus
+    - promtool
+
+- name: Set config directory ownership
+  ansible.builtin.file:
+    path: /etc/prometheus
+    owner: "{{ prometheus_user }}"
+    group: "{{ prometheus_user }}"
+    recurse: yes
+
+- name: Create data directory
+  file:
+    path: /var/lib/prometheus
+    state: directory
+    owner: "{{ prometheus_user }}"
+    group: "{{ prometheus_user }}"
+    mode: '0755'
+
+- name: Create systemd service
+  ansible.builtin.template:
+    src: prometheus.service.j2
+    dest: /etc/systemd/system/prometheus.service
+    mode: '0644'
+  notify:
+    - Reload systemd
+    - Restart prometheus
+
+- name: Enable and start Prometheus
+  ansible.builtin.service:
+    name: prometheus
+    enabled: yes
+    state: started
+
+- name: Deploy Prometheus configuration
+  template:
+    src: prometheus.yml.j2
+    dest: /etc/prometheus/prometheus.yml
+    owner: prometheus
+    group: prometheus
+    mode: '0644'
+  notify: Restart prometheus
+  tags:
+    - deploy-new-config-prom
+#

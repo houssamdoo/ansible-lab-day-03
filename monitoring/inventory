@@ -1,0 +1,16 @@
+[server-monitoring]
+15.15.15.11
+
+[target-rhel]
+15.15.15.12
+
+[windows]
+windows10 ansible_host=15.15.15.13
+
+[windows:vars]
+ansible_user=ansible
+ansible_password=Solution.2025
+ansible_port=5985
+ansible_connection=winrm
+ansible_winrm_transport=basic
+ansible_winrm_server_cert_validation=ignore
